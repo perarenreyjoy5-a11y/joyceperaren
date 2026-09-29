@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse handmade product samples from Handcrafted Haven.">
+    <title>Product Samples | Handcrafted Haven</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #fbf7f2;
+            color: #3e2c1c;
+            font-family: 'Quicksand', sans-serif;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .site-header {
+            background: #fffaf3;
+            border-bottom: 1px solid #f0e2d4;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .header-inner,
+        main {
+            width: min(1120px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .header-inner {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            color: #7a5c3e;
+            font: 600 1.5rem 'Playfair Display', serif;
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: #76583b;
+            font-weight: 700;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 4px;
+        }
+
+        main {
+            padding: 36px 0 72px;
+        }
+
+        .breadcrumb {
+            margin: 0 0 28px;
+            color: #76583b;
+            font-size: 0.95rem;
+        }
+
+        .product-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+            align-items: start;
+            gap: clamp(28px, 6vw, 72px);
+        }
+
+        .main-photo-wrap {
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            background: #f0e2d4;
+            border-radius: 8px;
+        }
+
+        .main-photo-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main-photo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-photo-placeholder {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            place-items: center;
+            font-size: 5rem;
+        }
+
+        .ballpen-photo { background: #e1eadf; color: #3f674e; }
+        .chipbag-photo { background: #f0e2c8; color: #946b2e; }
+        .rollon-photo { background: #dce9e7; color: #3d7771; }
+        .signpen-photo { background: #e4e1ef; color: #655d8b; }
+
+        .sample-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .sample-photo {
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            padding: 0;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            background: #f0e2d4;
+            cursor: pointer;
+        }
+
+        .sample-photo[aria-pressed="true"] {
+            border-color: #7a5c3e;
+        }
+
+        .sample-photo img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding-top: 12px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: #8a6845;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            color: #4d3827;
+            font: 600 clamp(2rem, 5vw, 3rem)/1.15 'Playfair Display', serif;
+        }
+
+        .description {
+            margin: 0 0 20px;
+            color: #5e4b3a;
+        }
+
+        .price {
+            margin: 0 0 24px;
+            color: #8a6845;
+            font: 600 1.7rem 'Playfair Display', serif;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 10px 22px;
+            border-radius: 4px;
+            background: #8a6845;
+            color: #fffaf3;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #6f5135;
+        }
+
+        .not-found {
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .header-inner,
+            main {
+                width: min(100% - 32px, 540px);
+            }
+
+            .header-inner {
+                min-height: 68px;
+            }
+
+            .brand {
+                font-size: 1.25rem;
+            }
+
+            main {
+                padding-top: 24px;
+            }
+
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+
+            .product-info {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="index.html#home">Handcrafted Haven</a>
+            <a class="back-link" href="index.html#shop"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to shop</a>
+        </div>
+    </header>
+
+    <main>
+        <p class="breadcrumb"><a href="index.html#shop">Shop</a> <span aria-hidden="true">/</span> <span id="breadcrumb-name">Product</span></p>
+        <section class="product-layout" id="product-detail" aria-labelledby="product-name">
+            <div class="gallery">
+                <div class="main-photo-wrap">
+                    <a class="main-photo-link" id="main-photo-link" href="" target="_blank" rel="noopener" aria-label="Open full-size product photo">
+                        <img class="main-photo" id="main-photo" src="" alt="">
+                    </a>
+                </div>
+                <div class="sample-gallery" id="sample-gallery" aria-label="Product sample photos"></div>
+            </div>
+            <div class="product-info">
+                <p class="eyebrow">Handmade with care</p>
+                <h1 id="product-name"></h1>
+                <p class="description" id="product-description"></p>
+                <p class="price" id="product-price"></p>
+                <a class="btn" id="contact-link" href="index.html#contact"><i class="fas fa-envelope" aria-hidden="true"></i>&nbsp; Ask about this item</a>
+            </div>
+        </section>
+        <section class="not-found" id="not-found" hidden>
+            <h1>Product not found</h1>
+            <p>Choose an item from the shop to view its sample photos.</p>
+            <a class="btn" href="index.html#shop">Return to shop</a>
+        </section>
+    </main>
+
+    <script>
+        const products = {
+            'frame-kits': {
+                name: 'DIY Frame Kits',
+                price: '250 pesos',
+                description: 'Create your own masterpiece with our beginner-friendly wooden frame kits. Includes paint, glue, and decorations.',
+                photos: [
+                    ['images/fram1.jpg', 'Art supplies for a DIY frame kit'],
+                    ['images/fram2.jpg ', 'Craft workspace with art materials'],
+                    ['images/fram3.jpg ', 'Paints and brushes for a handmade project']
+                ]
+            },
+            keychains: {
+                name: 'Personalised Keychains',
+                price: '100 pesos',
+                description: 'Hand-stamped leather or wooden keychains. Add names, dates, or a special message. Perfect little gift.',
+                photos: [
+                    ['images/key2.jpeg', 'Handmade personalised keychain'],
+                    ['images/key3.jpg ', 'Handcrafted jewellery and accessories'],
+                    ['images/key1.jpeg ', 'Personal accessories made by hand']
+                ]
+            },
+            'decoupage-frames': {
+                name: 'Calendar Customized',
+                price: '320 pesos',
+                description: 'Vintage-inspired frames decorated with floral and geometric patterns. Each one is a unique piece.',
+                photos: [
+                    ['images/cal1.jpg', 'Decorative frame and home accents'],
+                    ['images/cal2.jpg', 'Colourful decorative artwork'],
+                    ['images/cal3.jpg', 'Art and framed prints']
+                ]
+            },
+            'beaded-charms': {
+                name: 'Beaded Charms',
+                price: '9.90 pesos',
+                description: 'Colourful beaded keychain charms and bag accessories, handmade with love and high-quality beads.',
+                photos: [
+                    ['images/beaded-charms.jpg', 'Colourful beads for handmade charms'],
+                    ['images/fram2.jpg ', 'Handmade beaded accessory'],
+                    ['images/fram3.jpg ', 'Jewellery details and colourful beads']
+                ]
+            },
+            'customized-ballpen': {
+                name: 'Customized Ballpen',
+                price: 'Contact for price',
+                description: 'A personalized ballpen made with a name, message, or design of your choice.',
+                photos: [],
+                icon: 'fa-pen',
+                photos: [
+                    ['images/pen1.jpg', 'Decorative frame and home accents'],
+                    ['images/pen2.jpg', 'Colourful decorative artwork'],
+                    ['images/pen3.jpg', 'Art and framed prints'],
+                    ['images/pen4.jpg', 'Customized ballpen sample']
+                    
+                ]
+            },
+            'personalized-chipbag': {
+                name: 'Personalized Chip Bag',
+                price: 'Contact for price',
+                description: 'Custom snack packaging personalized for birthdays, celebrations, and special events.',
+                photos: [],
+                icon: 'fa-cookie-bite',
+                 photos: [
+                    ['images/chip1.jpg', 'Decorative frame and home accents'],
+                    ['images/chip2.jpg', 'Colourful decorative artwork'],
+                    ['images/chip3.jpg', 'Art and framed prints'],
+                    ['images/chip4.jpg', 'Customized chip bag sample']
+                    
+                ]
+            },
+            'efficascent-roll-on': {
+                name: 'Efficascent Roll-On',
+                price: 'Contact for price',
+                description: 'A handy roll-on comfort product that is easy to carry in a bag or keep at home.',
+                photos: [],
+                icon: 'fa-flask',
+                 photos: [
+                    ['images/rol1.jpg', 'Decorative frame and home accents'],
+                    ['images/rol2.jpg', 'Colourful decorative artwork'],
+                    ['images/rol3.jpg', 'Art and framed prints'],
+                    ['images/rol4.jpg', 'Customized roll-on sample']
+                    
+                ]
+            },
+            'sign-pen': {
+                name: 'Sign Pen',
+                price: 'Contact for price',
+                description: 'A smooth-writing pen for signatures, notes, and everyday writing.',
+                photos: [],
+                icon: 'fa-pen-nib',
+                photoClass: 'signpen-photo'
+            }
+        };
+
+        const productId = new URLSearchParams(window.location.search).get('item');
+        const product = products[productId];
+        const detail = document.getElementById('product-detail');
+        const notFound = document.getElementById('not-found');
+
+        if (!product) {
+            detail.hidden = true;
+            document.querySelector('.breadcrumb').hidden = true;
+            notFound.hidden = false;
+        } else {
+            document.title = `${product.name} | Handcrafted Haven`;
+            document.getElementById('breadcrumb-name').textContent = product.name;
+            document.getElementById('product-name').textContent = product.name;
+            document.getElementById('product-description').textContent = product.description;
+            document.getElementById('product-price').textContent = product.price;
+            document.getElementById('contact-link').href = `mailto:hello@handcraftedhaven.com?subject=${encodeURIComponent(`Question about ${product.name}`)}`;
+
+            const mainPhoto = document.getElementById('main-photo');
+            const mainPhotoLink = document.getElementById('main-photo-link');
+            const gallery = document.getElementById('sample-gallery');
+            const photos = product.photos.map(([src, alt]) => ({ src, alt }));
+
+            if (photos.length === 0) {
+                mainPhoto.hidden = true;
+                mainPhotoLink.hidden = true;
+                gallery.hidden = true;
+                const placeholder = document.createElement('div');
+                const icon = document.createElement('i');
+                placeholder.className = `product-photo-placeholder ${product.photoClass}`;
+                icon.className = `fas ${product.icon}`;
+                icon.setAttribute('aria-hidden', 'true');
+                placeholder.append(icon);
+                mainPhotoLink.parentElement.append(placeholder);
+            }
+
+            photos.forEach((photo, index) => {
+                const thumbnail = document.createElement('button');
+                const thumbnailImage = document.createElement('img');
+                thumbnail.type = 'button';
+                thumbnail.className = 'sample-photo';
+                thumbnail.setAttribute('aria-label', `Show sample photo ${index + 1}`);
+                thumbnail.setAttribute('aria-pressed', String(index === 0));
+                thumbnailImage.src = photo.src;
+                thumbnailImage.alt = '';
+                thumbnail.append(thumbnailImage);
+                thumbnail.addEventListener('click', () => {
+                    mainPhoto.src = photo.src;
+                    mainPhoto.alt = photo.alt;
+                    mainPhotoLink.href = photo.src;
+                    mainPhotoLink.setAttribute('aria-label', `Open full-size photo: ${photo.alt}`);
+                    document.querySelectorAll('.sample-photo').forEach((button) => button.setAttribute('aria-pressed', 'false'));
+                    thumbnail.setAttribute('aria-pressed', 'true');
+                });
+                gallery.append(thumbnail);
+            });
+
+            if (photos.length > 0) {
+                mainPhoto.src = photos[0].src;
+                mainPhoto.alt = photos[0].alt;
+                mainPhotoLink.href = photos[0].src;
+                mainPhotoLink.setAttribute('aria-label', `Open full-size photo: ${photos[0].alt}`);
+            }
+        }
+    </script>
+</body>
+</html>
