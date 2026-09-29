@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Store Admin | Tromara Prints & Craft</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #fbf7f2; color: #3e2c1c; font-family: 'Quicksand', sans-serif; line-height: 1.5; }
+        header { background: #fffaf3; border-bottom: 1px solid #f0e2d4; }
+        .header-inner, main { width: min(1040px, calc(100% - 36px)); margin: 0 auto; }
+        .header-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { color: #7a5c3e; font: 600 1.3rem 'Playfair Display', serif; text-decoration: none; }
+        .back-link { color: #76583b; font-weight: 700; }
+        main { padding: 32px 0 64px; }
+        h1, h2 { color: #4d3827; font-family: 'Playfair Display', serif; }
+        h1 { margin: 0 0 8px; font-size: 2rem; }
+        h2 { margin: 0 0 18px; font-size: 1.45rem; }
+        p { color: #6b5542; }
+        .panel { background: #fffaf3; border: 1px solid #e8dacb; border-radius: 6px; padding: 24px; }
+        .auth-panel { max-width: 440px; margin: 32px auto; }
+        .field { display: grid; gap: 6px; margin-bottom: 16px; }
+        label { color: #5c4430; font-size: 0.95rem; font-weight: 700; }
+        input, textarea { width: 100%; min-height: 42px; border: 1px solid #cdbba8; border-radius: 4px; padding: 9px 11px; background: #fff; color: #3e2c1c; font: inherit; }
+        textarea { min-height: 100px; resize: vertical; }
+        input:focus, textarea:focus { outline: 2px solid #b28b65; outline-offset: 1px; }
+        input[type="checkbox"] { width: 18px; min-height: 18px; accent-color: #7a5c3e; }
+        input[type="file"] { padding: 7px; }
+        .check-field { display: flex; align-items: center; gap: 9px; margin: 0 0 18px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; border: 0; border-radius: 4px; padding: 9px 18px; background: #8a6845; color: #fffaf3; font: 700 0.95rem 'Quicksand', sans-serif; text-decoration: none; cursor: pointer; }
+        .btn:hover { background: #6f5135; }
+        .btn.secondary { background: #eee4d9; color: #5c4430; }
+        .btn.danger { background: #9c4236; }
+        .btn:disabled { cursor: wait; opacity: 0.65; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .toolbar p { margin: 0; }
+        .product-form { margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
+        .wide { grid-column: 1 / -1; }
+        .form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .product-list { display: grid; gap: 10px; }
+        .product-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; border-top: 1px solid #e8dacb; padding: 14px 2px; }
+        .product-row h3 { margin: 0 0 3px; color: #4d3827; font-size: 1rem; }
+        .product-row p { margin: 0; font-size: 0.9rem; }
+        .row-actions { display: flex; gap: 8px; }
+        .status { min-height: 1.5em; margin: 12px 0 0; color: #76583b; font-size: 0.95rem; }
+        .status.error { color: #9c3025; }
+        .muted { font-size: 0.9rem; }
+        [hidden] { display: none !important; }
+        @media (max-width: 620px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .wide { grid-column: auto; }
+            .toolbar { align-items: flex-start; flex-direction: column; }
+            .product-row { grid-template-columns: 1fr; }
+            .auth-panel { margin-top: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <a class="brand" href="index.html">Tromara Prints & Craft</a>
+            <a class="back-link" href="index.html#shop">View shop</a>
+        </div>
+    </header>
+    <main>
+        <section class="panel auth-panel" id="auth-panel" aria-labelledby="login-title">
+            <h1 id="login-title">Admin sign in</h1>
+            <p>Sign in with the administrator account for this store.</p>
+            <form id="login-form">
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn" type="submit">Sign in</button>
+            </form>
+            <p class="status" id="login-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="admin-panel" hidden aria-labelledby="admin-title">
+            <div class="toolbar">
+                <div>
+                    <h1 id="admin-title">Products</h1>
+                    <p id="signed-in-as"></p>
+                </div>
+                <button class="btn secondary" id="sign-out" type="button">Sign out</button>
+            </div>
+            <section class="panel product-form" aria-labelledby="form-title">
+                <h2 id="form-title">Add a product</h2>
+                <form id="product-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="slug">Product link ID</label>
+                            <input id="slug" name="slug" pattern="[a-z0-9-]+" required>
+                        </div>
+                        <div class="field">
+                            <label for="name">Product name</label>
+                            <input id="name" name="name" required>
+                        </div>
+                        <div class="field">
+                            <label for="price">Price</label>
+                            <input id="price" name="price" required>
+                        </div>
+                        <div class="field wide">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" required></textarea>
+                        </div>
+                        <div class="field wide">
+                            <label for="photos">Product photos</label>
+                            <input id="photos" name="photos" type="file" accept="image/*" multiple>
+                            <span class="muted" id="photo-help">Choose photos to upload. When editing, leaving this empty keeps the current photos.</span>
+                        </div>
+                    </div>
+                    <label class="check-field" for="active">
+                        <input id="active" name="active" type="checkbox" checked>
+                        <span>Visible in the customer shop</span>
+                    </label>
+                    <div class="form-actions">
+                        <button class="btn" id="save-product" type="submit">Save product</button>
+                        <button class="btn secondary" id="cancel-edit" type="button" hidden>Cancel edit</button>
+                    </div>
+                    <p class="status" id="form-status" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+            <section aria-labelledby="list-title">
+                <h2 id="list-title">Store catalog</h2>
+                <div class="product-list" id="product-list"></div>
+                <p class="status" id="list-status" role="status" aria-live="polite"></p>
+            </section>
+        </section>
+    </main>
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
