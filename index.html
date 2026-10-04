@@ -1,253 +1,907 @@
-import { isSupabaseConfigured, supabase } from './supabase-client.js';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tromara Prints & Craft | Frames & Keychains</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-const authPanel = document.getElementById('auth-panel');
-const adminPanel = document.getElementById('admin-panel');
-const loginForm = document.getElementById('login-form');
-const loginStatus = document.getElementById('login-status');
-const productForm = document.getElementById('product-form');
-const formStatus = document.getElementById('form-status');
-const listStatus = document.getElementById('list-status');
-const productList = document.getElementById('product-list');
-const saveButton = document.getElementById('save-product');
-const cancelEditButton = document.getElementById('cancel-edit');
-let products = [];
-let editingProduct = null;
-
-const setStatus = (element, message, isError = false) => {
-    element.textContent = message;
-    element.classList.toggle('error', isError);
-};
-
-const showLogin = (message = '') => {
-    authPanel.hidden = false;
-    adminPanel.hidden = true;
-    setStatus(loginStatus, message, Boolean(message));
-};
-
-const renderProducts = () => {
-    productList.replaceChildren();
-
-    products.forEach((product) => {
-        const row = document.createElement('article');
-        const summary = document.createElement('div');
-        const name = document.createElement('h3');
-        const details = document.createElement('p');
-        const actions = document.createElement('div');
-        const editButton = document.createElement('button');
-        const deleteButton = document.createElement('button');
-
-        row.className = 'product-row';
-        name.textContent = product.name;
-        details.textContent = `${product.price} · ${product.active ? 'Visible' : 'Hidden'} · ${product.slug}`;
-        summary.append(name, details);
-        actions.className = 'row-actions';
-        editButton.type = 'button';
-        editButton.className = 'btn secondary';
-        editButton.dataset.action = 'edit';
-        editButton.dataset.slug = product.slug;
-        editButton.textContent = 'Edit';
-        deleteButton.type = 'button';
-        deleteButton.className = 'btn danger';
-        deleteButton.dataset.action = 'delete';
-        deleteButton.dataset.slug = product.slug;
-        deleteButton.textContent = 'Delete';
-        actions.append(editButton, deleteButton);
-        row.append(summary, actions);
-        productList.append(row);
-    });
-};
-
-const loadProducts = async () => {
-    setStatus(listStatus, 'Loading products...');
-    const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
-    if (error) {
-        setStatus(listStatus, `Could not load products: ${error.message}`, true);
-        return;
-    }
-
-    products = data;
-    renderProducts();
-    setStatus(listStatus, products.length ? '' : 'No products yet. Add your first product above.');
-};
-
-const openAdmin = async (session) => {
-    if (!session) {
-        showLogin();
-        return;
-    }
-
-    setStatus(loginStatus, 'Checking admin access...');
-    const { data, error } = await supabase.rpc('is_admin');
-
-    if (error) {
-        await supabase.auth.signOut();
-        showLogin('Could not verify admin access. Check the setup SQL and admin account assignment.');
-        return;
-    }
-
-    if (!data) {
-        await supabase.auth.signOut();
-        showLogin('This account does not have admin access.');
-        return;
-    }
-
-    authPanel.hidden = true;
-    adminPanel.hidden = false;
-    document.getElementById('signed-in-as').textContent = `Signed in as ${session.user.email}`;
-    await loadProducts();
-};
-
-const uploadPhotos = async (files, slug) => {
-    const photos = [];
-
-    for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-            throw new Error(`${file.name} is not an image file.`);
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fbf7f2;
+            color: #3e2c1c;
+            line-height: 1.5;
+            scroll-behavior: smooth;
         }
 
-        const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
-        const path = `${slug}/${crypto.randomUUID()}-${safeName}`;
-        const { error } = await supabase.storage
-            .from('product-photos')
-            .upload(path, file, { cacheControl: '3600', upsert: false });
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; letter-spacing: 0.5px; }
 
-        if (error) {
-            throw new Error(`Could not upload ${file.name}: ${error.message}`);
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header & Navigation */
+        header {
+            background-color: #fffaf3;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #f0e2d4;
         }
+        .header-flex { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .logo a {
+            text-decoration: none;
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            color: #7a5c3e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo i { color: #b28b65; font-size: 2rem; }
+        nav ul { display: flex; list-style: none; gap: 2.2rem; flex-wrap: wrap; align-items: center; }
+        nav a {
+            text-decoration: none;
+            font-weight: 600;
+            color: #5c4430;
+            transition: color 0.2s;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid transparent;
+        }
+        nav a:hover, nav a.active { color: #b28b65; border-bottom: 2px solid #b28b65; }
 
-        const { data } = supabase.storage.from('product-photos').getPublicUrl(path);
-        photos.push({ src: data.publicUrl, alt: file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') });
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            background-color: #b28b65;
+            color: #fffaf3;
+            padding: 12px 30px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-size: 1rem;
+            box-shadow: 0 6px 12px rgba(178, 139, 101, 0.2);
+            letter-spacing: 0.5px;
+        }
+        .btn:hover { background-color: #9a714b; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid #b28b65; color: #b28b65; box-shadow: none; }
+        .btn-outline:hover { background: #b28b65; color: #fffaf3; }
+        .btn-sm { padding: 8px 20px; font-size: 0.9rem; }
+        .btn-danger { background: #c0392b; }
+        .btn-danger:hover { background: #a93226; }
+
+        /* Hero Section */
+        .hero { padding: 70px 0 80px; background: linear-gradient(135deg, #fffaf3 0%, #f9efe6 100%); border-bottom: 1px solid #f0e2d4; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .hero-content h1 { font-size: 3.2rem; line-height: 1.2; color: #4d3827; margin-bottom: 20px; }
+        .hero-content h1 span { color: #b28b65; font-style: italic; }
+        .hero-content p { font-size: 1.2rem; color: #5e4b3a; margin-bottom: 30px; max-width: 90%; }
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #e8d9cb;
+            border-radius: 60% 40% 50% 50% / 40% 50% 50% 60%;
+            padding: 30px;
+            box-shadow: 0 30px 30px -15px rgba(90, 60, 40, 0.2);
+        }
+        .hero-image img { width: 100%; max-width: 400px; height: auto; border-radius: 30px; object-fit: cover; display: block; }
+
+        /* Section general */
+        section { padding: 80px 0; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 15px; color: #4d3827; }
+        .section-subtitle { text-align: center; color: #7a5c3e; margin-bottom: 50px; font-size: 1.1rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+
+        /* Cards / Products */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
+        .card {
+            background: #fffaf3;
+            border-radius: 24px;
+            padding: 25px 20px 30px;
+            box-shadow: 0 10px 25px -8px rgba(90, 60, 40, 0.1);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f5e8dc;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 25px 30px -12px rgba(90, 60, 40, 0.2); }
+        .product-photo {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: #f5ede4;
+        }
+        .product-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .product-photo > a { display: block; width: 100%; height: 100%; }
+        .card h3 { font-size: 1.6rem; margin-bottom: 12px; color: #4d3827; }
+        .card h3 a { color: inherit; text-decoration: none; }
+        .card h3 a:hover { color: #9a714b; }
+        .card p { color: #6b5542; margin-bottom: 20px; font-size: 1rem; }
+        .price { font-weight: 700; color: #b28b65; font-size: 1.4rem; margin-bottom: 15px; font-family: 'Playfair Display', serif; }
+
+        /* Admin controls on cards */
+        .admin-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+            gap: 6px;
+            z-index: 5;
+        }
+        .admin-mode .admin-controls { display: flex; }
+        .admin-controls button {
+            background: rgba(255,255,255,0.92);
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #4d3827;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: background 0.2s, color 0.2s;
+        }
+        .admin-controls button:hover { background: #b28b65; color: #fff; }
+        .admin-controls button.delete-btn:hover { background: #c0392b; }
+
+        /* Featured / custom order */
+        .featured {
+            background: #f5ede4;
+            border-radius: 60px 60px 30px 30px;
+            padding: 60px 40px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            border: 1px solid #e3d5c8;
+        }
+        .featured-content { flex: 1 1 300px; }
+        .featured-content h2 { font-size: 2.3rem; margin-bottom: 20px; color: #4d3827; }
+        .featured-content p { font-size: 1.1rem; margin-bottom: 25px; color: #5e4b3a; }
+        .featured-image { flex: 1 1 300px; text-align: center; }
+        .featured-image i { font-size: 8rem; color: #b28b65; opacity: 0.8; }
+
+        /* Testimonials */
+        .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
+        .testimonial {
+            background: #fffaf3;
+            border-radius: 24px;
+            padding: 30px 25px;
+            box-shadow: 0 8px 20px -8px rgba(90, 60, 40, 0.1);
+            border-left: 6px solid #b28b65;
+        }
+        .testimonial i { color: #d4b59a; font-size: 1.8rem; margin-bottom: 12px; }
+        .testimonial p { font-style: italic; margin-bottom: 20px; color: #4d3827; }
+        .testimonial h4 { font-weight: 700; color: #7a5c3e; }
+
+        /* Contact / CTA */
+        .contact-section {
+            background: #4d3827;
+            color: #fbf7f2;
+            border-radius: 60px 60px 0 0;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .contact-section h2 { color: #fffaf3; font-size: 2.5rem; margin-bottom: 20px; }
+        .contact-section p { color: #e3d5c8; font-size: 1.2rem; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .contact-section .btn { background-color: #d4b59a; color: #3e2c1c; }
+        .contact-section .btn:hover { background-color: #e6cdb8; }
+
+        /* Footer */
+        footer { background: #3e2c1c; color: #bbaa99; padding: 40px 0 25px; border-radius: 0 0 20px 20px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-bottom: 30px; }
+        .footer-col h4 { color: #f0e2d4; font-size: 1.2rem; margin-bottom: 18px; font-family: 'Quicksand', sans-serif; font-weight: 700; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 10px; font-size: 0.95rem; }
+        .footer-col a { color: #bbaa99; text-decoration: none; transition: color 0.2s; }
+        .footer-col a:hover { color: #d4b59a; }
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #5e4b3a;
+            color: #f0e2d4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+            transition: background 0.2s, transform 0.1s;
+            text-decoration: none;
+        }
+        .social-icons a:hover { background: #b28b65; transform: scale(1.05); }
+        .copyright { border-top: 1px solid #5e4b3a; padding-top: 25px; text-align: center; font-size: 0.9rem; color: #9a8b7d; }
+
+        /* ---------- ADMIN PANEL ---------- */
+        .admin-banner {
+            display: none;
+            background: #4d3827;
+            color: #f0e2d4;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .admin-banner.active { display: block; }
+        .admin-banner button {
+            margin-left: 12px;
+            background: #b28b65;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .admin-banner button:hover { background: #9a714b; }
+
+        /* Admin login modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #fffaf3;
+            border-radius: 20px;
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .modal h2 { font-size: 1.8rem; margin-bottom: 20px; color: #4d3827; text-align: center; }
+        .modal label { display: block; font-weight: 600; margin-bottom: 6px; color: #5c4430; font-size: 0.95rem; }
+        .modal input, .modal textarea, .modal select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #e3d5c8;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            background: #fff;
+            color: #3e2c1c;
+        }
+        .modal input:focus, .modal textarea:focus { outline: 2px solid #b28b65; border-color: transparent; }
+        .modal .close-x {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            color: #9a8b7d;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal .close-x:hover { color: #4d3827; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+        .modal-actions .btn { padding: 10px 22px; font-size: 0.95rem; }
+
+        .hint { font-size: 0.8rem; color: #9a8b7d; text-align: center; margin-top: 14px; line-height: 1.4; }
+
+        /* Image preview in modal */
+        .img-preview {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: none;
+            border: 1px solid #e3d5c8;
+        }
+        .img-preview.show { display: block; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .hero-content p { max-width: 100%; margin-left: auto; margin-right: auto; }
+            .header-flex { flex-direction: column; gap: 15px; }
+            nav ul { gap: 1.5rem; justify-content: center; }
+            .featured { padding: 40px 25px; text-align: center; }
+            .section-title { font-size: 2rem; }
+            .contact-section h2 { font-size: 2rem; }
+        }
+        @media (max-width: 480px) {
+            nav ul { gap: 1rem; font-size: 0.9rem; }
+            .logo a { font-size: 1.5rem; }
+            .hero-content h1 { font-size: 2rem; }
+            .btn { padding: 10px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ADMIN BANNER (visible only in admin mode) -->
+    <div class="admin-banner" id="adminBanner">
+        <i class="fas fa-user-shield"></i> Admin Mode — changes are saved locally.
+        <button id="exportBtn"><i class="fas fa-download"></i> Export products.json</button>
+        <button id="addProductBtn"><i class="fas fa-plus"></i> Add product</button>
+        <button id="exitAdminBtn"><i class="fas fa-sign-out-alt"></i> Exit admin</button>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="container header-flex">
+            <div class="logo">
+                <a href="#">
+                    <i class="fas fa-hands"></i> Tromara Prints & Craft
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#shop">Shop</a></li>
+                    <li><a href="#custom">Custom</a></li>
+                    <li><a href="#testimonials">Reviews</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#" id="adminNavLink" title="Admin"><i class="fas fa-lock"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <h1>Handmade <span>frames & keychains</span> with love</h1>
+                <p>Discover unique, crafted-with-care DIY frames, personalised keychains, and charming accessories that tell your story. Every piece is made by hand, just for you.</p>
+                <a href="#shop" class="btn">Shop now <i class="fas fa-arrow-right" style="margin-left: 6px;"></i></a>
+                <a href="#custom" class="btn btn-outline" style="margin-left: 15px;">Custom order</a>
+            </div>
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1616627561950-9f746e330187?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Handcrafted frames and keychains">
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCT CATEGORIES / SHOP SECTION -->
+    <section id="shop">
+        <div class="container">
+            <h2 class="section-title">Handcrafted favourites</h2>
+            <p class="section-subtitle">From rustic photo frames to playful keychains — each item is designed and made by hand in our studio.</p>
+            <div class="cards-grid" id="productGrid">
+                <!-- Products rendered by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CUSTOM ORDER / FEATURED SECTION -->
+    <section id="custom">
+        <div class="container">
+            <div class="featured">
+                <div class="featured-content">
+                    <h2>Want something truly unique?</h2>
+                    <p>We love custom projects! Whether it's a memory frame with your wedding flowers, a keychain with your pet's portrait, or a set of DIY kits for a party — we can bring your idea to life.</p>
+                    <p>Get in touch and we'll craft a special piece just for you. Turnaround time is usually 7–10 days.</p>
+                    <a href="#contact" class="btn">Start a custom order</a>
+                </div>
+                <div class="featured-image">
+                    <i class="fas fa-hands-helping"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION -->
+    <section id="testimonials" style="background: #fffaf3;">
+        <div class="container">
+            <h2 class="section-title">Kind words from our customers</h2>
+            <p class="section-subtitle">We're grateful for every handmade lover who supports our small business.</p>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <i class="fas fa-quote-left"></i>
+                    <p>The custom frame I ordered for my mum's birthday was beyond beautiful. You can feel the love and care in every detail.</p>
+                    <h4>— Tromara Prints & Craft</h4>
+                </div>
+                <div class="testimonial">
+                    <i class="fas fa-quote-left"></i>
+                    <p>My keychain with my dog's name is my favourite accessory. Great quality, super cute packaging, fast shipping!</p>
+                    <h4>— Tromara Prints & Craft</h4>
+                </div>
+                <div class="testimonial">
+                    <i class="fas fa-quote-left"></i>
+                    <p>We bought DIY frame kits for a craft party and everyone loved them. Everything was included and the instructions were clear.</p>
+                    <h4>— Tromara Prints & Craft</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT / CTA SECTION -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Let's create something together</h2>
+            <p>Questions, custom requests, or just want to say hi? We'd love to hear from you.</p>
+            <a href="mailto:joyceperaren@gmail.com" class="btn"><i class="fas fa-envelope" style="margin-right: 8px;"></i> joyceperaren@gmail.com</a>
+            <p style="margin-top: 25px; font-size: 1rem;"><i class="fas fa-phone-alt"></i> 09956227260 &nbsp;|&nbsp; <i class="fas fa-map-pin"></i> BRGY SAN MIGUEL, MURCIA NEGROS OCCIDENTAL</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Tromara Prints & Craft</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#shop">Shop</a></li>
+                        <li><a href="#custom">Custom orders</a></li>
+                        <li><a href="#testimonials">Reviews</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Shipping & returns</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Care instructions</a></li>
+                        <li><a href="#">Privacy policy</a></li>
+                        <li><a href="#" id="footerAdminLink">Admin sign in</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow us</h4>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+                        <a href="#" aria-label="Etsy"><i class="fab fa-etsy"></i></a>
+                    </div>
+                    <p style="margin-top: 18px; font-size: 0.9rem;">Join our newsletter for craft tips & offers.</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; Tromara Prints & Craft. All handmade with love.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <button class="close-x" id="closeLogin">&times;</button>
+            <h2><i class="fas fa-lock"></i> Admin Sign In</h2>
+            <label for="adminPass">Password</label>
+            <input type="password" id="adminPass" placeholder="Enter admin password" autocomplete="current-password">
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelLogin">Cancel</button>
+                <button class="btn" id="submitLogin">Sign In</button>
+            </div>
+            <p class="hint">Default password: <strong>tromara2024</strong><br>(Change it in the code — see <code>ADMIN_PASSWORD</code>.)</p>
+        </div>
+    </div>
+
+    <!-- PRODUCT EDIT / ADD MODAL -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <button class="close-x" id="closeProduct">&times;</button>
+            <h2 id="productModalTitle">Edit Product</h2>
+            <input type="hidden" id="editIndex" value="-1">
+
+            <label for="pName">Product name</label>
+            <input type="text" id="pName" placeholder="e.g. DIY Frame Kits">
+
+            <label for="pDesc">Description</label>
+            <textarea id="pDesc" rows="3" placeholder="Short description..."></textarea>
+
+            <label for="pPrice">Price</label>
+            <input type="text" id="pPrice" placeholder="e.g. 180 pesos">
+
+            <label for="pLink">Product link (optional)</label>
+            <input type="text" id="pLink" placeholder="product.html?item=frame-kits">
+
+            <label for="pImage">Photo</label>
+            <input type="file" id="pImageFile" accept="image/*">
+            <input type="hidden" id="pImageData" value="">
+            <img id="pImagePreview" class="img-preview" alt="Preview">
+            <p class="hint" style="text-align:left; margin-top:-8px;">Choose a file to upload a new photo, or leave empty to keep the current one.</p>
+
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelProduct">Cancel</button>
+                <button class="btn" id="saveProduct">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* ============================================================
+       TROMARA PRINTS & CRAFT — ADMIN-ENABLED PRODUCT MANAGEMENT
+       ------------------------------------------------------------
+       How it works on GitHub Pages:
+       - Products are defined in DEFAULT_PRODUCTS below (the "source of truth").
+       - When an admin edits/adds/deletes, changes are saved to localStorage
+         so they appear immediately in that browser.
+       - Click "Export products.json" to download the updated data, then
+         commit that file to your repo (replacing the DEFAULT_PRODUCTS block
+         or loading it via fetch) to make changes permanent for everyone.
+       ============================================================ */
+
+    // 🔐 CHANGE THIS PASSWORD before publishing!
+    const ADMIN_PASSWORD = 'tromara2024';
+
+    // 📦 DEFAULT PRODUCTS — edit these to change what visitors see on GitHub.
+    //    To make admin edits permanent, export and replace this array.
+    const DEFAULT_PRODUCTS = [
+        {
+            name: "DIY Frame Kits",
+            desc: "Create your own masterpiece with our beginner-friendly wooden frame kits. Includes paint, glue, and decorations.",
+            price: "180 pesos",
+            link: "product.html?item=frame-kits",
+            img: "images/fram1.jpg"
+        },
+        {
+            name: "Personalised Keychains",
+            desc: "Hand-stamped leather or wooden keychains. Add names, dates, or a special message. Perfect little gift.",
+            price: "35 pesos per pcs",
+            link: "product.html?item=keychains",
+            img: "images/key2.jpeg"
+        },
+        {
+            name: "Calendar Customized",
+            desc: "Vintage-inspired frames decorated with floral and geometric patterns. Each one is a unique piece.",
+            price: "150 Pesos",
+            link: "product.html?item=decoupage-frames",
+            img: "images/cal1.jpg"
+        },
+        {
+            name: "Beaded Charms",
+            desc: "Colourful beaded keychain charms and bag accessories, handmade with love and high-quality beads.",
+            price: "9.90 Pesos",
+            link: "product.html?item=beaded-charms",
+            img: "images/beaded-charms.jpg"
+        },
+        {
+            name: "Customized Ballpen",
+            desc: "A personalized ballpen made with a name, message, or design of your choice.",
+            price: "3pcs for 75 pesos",
+            link: "product.html?item=customized-ballpen",
+            img: "images/pen0.jpg"
+        },
+        {
+            name: "Personalized Chip Bag",
+            desc: "Custom snack packaging personalized for birthdays, celebrations, and special events.",
+            price: "65 Per Set",
+            link: "product.html?item=personalized-chipbag",
+            img: "images/chip1.jpg"
+        },
+        {
+            name: "Efficascent Roll-On",
+            desc: "A handy roll-on comfort product that is easy to carry in a bag or keep at home.",
+            price: "90 Pesos",
+            link: "product.html?item=efficascent-roll-on",
+            img: "images/rol1.jpg"
+        },
+        {
+            name: "Pen Organizer Personalized",
+            desc: "A smooth-writing pen for signatures, notes, and everyday writing.",
+            price: "90 Pesos",
+            link: "product.html?item=sign-pen",
+            img: "images/box1.jpg"
+        }
+    ];
+
+    const STORAGE_KEY = 'tromara_products_v1';
+    const ADMIN_KEY = 'tromara_admin_mode';
+
+    // ---------- State ----------
+    let products = [];
+    let isAdmin = false;
+    let pendingImageData = '';
+
+    // ---------- DOM refs ----------
+    const grid = document.getElementById('productGrid');
+    const adminBanner = document.getElementById('adminBanner');
+    const loginModal = document.getElementById('loginModal');
+    const productModal = document.getElementById('productModal');
+    const adminNavLink = document.getElementById('adminNavLink');
+    const footerAdminLink = document.getElementById('footerAdminLink');
+
+    // ---------- Load / Save ----------
+    function loadProducts() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                products = JSON.parse(stored);
+            } else {
+                products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+            }
+        } catch (e) {
+            products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
+        if (!Array.isArray(products) || products.length === 0) {
+            products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
     }
 
-    return photos;
-};
-
-const resetProductForm = () => {
-    editingProduct = null;
-    productForm.reset();
-    productForm.elements.slug.readOnly = false;
-    productForm.elements.active.checked = true;
-    document.getElementById('form-title').textContent = 'Add a product';
-    saveButton.textContent = 'Save product';
-    cancelEditButton.hidden = true;
-    setStatus(formStatus, '');
-};
-
-loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const submitButton = loginForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    setStatus(loginStatus, 'Signing in...');
-
-    const { error } = await supabase.auth.signInWithPassword({
-        email: loginForm.elements.email.value.trim(),
-        password: loginForm.elements.password.value
-    });
-
-    submitButton.disabled = false;
-
-    if (error) {
-        setStatus(loginStatus, error.message, true);
-        return;
+    function saveProducts() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
     }
 
-    const { data } = await supabase.auth.getSession();
-    await openAdmin(data.session);
-});
+    // ---------- Rendering ----------
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-productForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    saveButton.disabled = true;
-    setStatus(formStatus, 'Saving product...');
+    function renderProducts() {
+        if (!grid) return;
+        grid.innerHTML = '';
 
-    try {
-        const slug = productForm.elements.slug.value.trim();
-        const files = Array.from(productForm.elements.photos.files);
-        const photos = files.length
-            ? await uploadPhotos(files, slug)
-            : (editingProduct?.photos || []);
-        const record = {
-            slug,
-            name: productForm.elements.name.value.trim(),
-            price: productForm.elements.price.value.trim(),
-            description: productForm.elements.description.value.trim(),
-            photos,
-            sort_order: editingProduct?.sort_order ?? products.length,
-            active: productForm.elements.active.checked
+        products.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const imgSrc = p.img || 'https://via.placeholder.com/400x300?text=No+Image';
+            const link = p.link || '#';
+
+            card.innerHTML = `
+                <div class="admin-controls">
+                    <button class="edit-btn" data-index="${idx}" title="Edit"><i class="fas fa-pen"></i></button>
+                    <button class="delete-btn" data-index="${idx}" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="product-photo">
+                    <a href="${escapeHtml(link)}" aria-label="View ${escapeHtml(p.name)}">
+                        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(p.name)}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
+                    </a>
+                </div>
+                <h3><a href="${escapeHtml(link)}">${escapeHtml(p.name)}</a></h3>
+                <p>${escapeHtml(p.desc)}</p>
+                <div class="price">${escapeHtml(p.price)}</div>
+                <a href="${escapeHtml(link)}" class="btn" style="padding: 8px 20px; font-size: 0.9rem;">View details</a>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Attach admin button listeners
+        grid.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openProductModal(parseInt(btn.dataset.index, 10));
+            });
+        });
+        grid.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const i = parseInt(btn.dataset.index, 10);
+                if (confirm(`Delete "${products[i].name}"? This cannot be undone (unless you reset).`)) {
+                    products.splice(i, 1);
+                    saveProducts();
+                    renderProducts();
+                }
+            });
+        });
+    }
+
+    // ---------- Admin mode ----------
+    function setAdminMode(on) {
+        isAdmin = on;
+        document.body.classList.toggle('admin-mode', on);
+        adminBanner.classList.toggle('active', on);
+        sessionStorage.setItem(ADMIN_KEY, on ? '1' : '0');
+        if (on) {
+            renderProducts();
+        }
+    }
+
+    function restoreAdminMode() {
+        if (sessionStorage.getItem(ADMIN_KEY) === '1') {
+            setAdminMode(true);
+        }
+    }
+
+    // ---------- Login ----------
+    function openLogin() {
+        document.getElementById('adminPass').value = '';
+        loginModal.classList.add('open');
+    }
+    function closeLogin() { loginModal.classList.remove('open'); }
+
+    function attemptLogin() {
+        const pass = document.getElementById('adminPass').value;
+        if (pass === ADMIN_PASSWORD) {
+            closeLogin();
+            setAdminMode(true);
+        } else {
+            alert('Incorrect password. Try again.');
+        }
+    }
+
+    // ---------- Product modal ----------
+    function openProductModal(index = -1) {
+        const modalTitle = document.getElementById('productModalTitle');
+        const editIndex = document.getElementById('editIndex');
+        const nameInput = document.getElementById('pName');
+        const descInput = document.getElementById('pDesc');
+        const priceInput = document.getElementById('pPrice');
+        const linkInput = document.getElementById('pLink');
+        const fileInput = document.getElementById('pImageFile');
+        const preview = document.getElementById('pImagePreview');
+        const imageDataInput = document.getElementById('pImageData');
+
+        pendingImageData = '';
+        fileInput.value = '';
+        preview.classList.remove('show');
+        preview.src = '';
+
+        if (index >= 0 && products[index]) {
+            const p = products[index];
+            modalTitle.textContent = 'Edit Product';
+            editIndex.value = index;
+            nameInput.value = p.name || '';
+            descInput.value = p.desc || '';
+            priceInput.value = p.price || '';
+            linkInput.value = p.link || '';
+            if (p.img) {
+                pendingImageData = p.img;
+                preview.src = p.img;
+                preview.classList.add('show');
+            }
+        } else {
+            modalTitle.textContent = 'Add New Product';
+            editIndex.value = -1;
+            nameInput.value = '';
+            descInput.value = '';
+            priceInput.value = '';
+            linkInput.value = '';
+        }
+        imageDataInput.value = '';
+        productModal.classList.add('open');
+    }
+
+    function closeProductModal() {
+        productModal.classList.remove('open');
+        pendingImageData = '';
+    }
+
+    // Handle image file -> data URL
+    document.getElementById('pImageFile').addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            pendingImageData = e.target.result;
+            const preview = document.getElementById('pImagePreview');
+            preview.src = pendingImageData;
+            preview.classList.add('show');
         };
-        const { error } = await supabase.from('products').upsert(record, { onConflict: 'slug' });
-
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        resetProductForm();
-        await loadProducts();
-        setStatus(listStatus, 'Product saved. The customer shop will show the update on its next load.');
-    } catch (error) {
-        setStatus(formStatus, error.message, true);
-    } finally {
-        saveButton.disabled = false;
-    }
-});
-
-productList.addEventListener('click', async (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
-
-    const product = products.find((item) => item.slug === button.dataset.slug);
-    if (!product) return;
-
-    if (button.dataset.action === 'edit') {
-        editingProduct = product;
-        productForm.elements.slug.value = product.slug;
-        productForm.elements.slug.readOnly = true;
-        productForm.elements.name.value = product.name;
-        productForm.elements.price.value = product.price;
-        productForm.elements.description.value = product.description;
-        productForm.elements.active.checked = product.active;
-        document.getElementById('form-title').textContent = `Edit ${product.name}`;
-        saveButton.textContent = 'Update product';
-        cancelEditButton.hidden = false;
-        setStatus(formStatus, '');
-        productForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-    }
-
-    if (button.dataset.action === 'delete' && window.confirm(`Delete ${product.name}? This cannot be undone.`)) {
-        button.disabled = true;
-        const { error } = await supabase.from('products').delete().eq('slug', product.slug);
-        if (error) {
-            setStatus(listStatus, `Could not delete product: ${error.message}`, true);
-            button.disabled = false;
-            return;
-        }
-        await loadProducts();
-        setStatus(listStatus, 'Product deleted.');
-    }
-});
-
-cancelEditButton.addEventListener('click', resetProductForm);
-
-document.getElementById('sign-out').addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    showLogin('You have signed out.');
-});
-
-if (!isSupabaseConfigured) {
-    loginForm.querySelectorAll('input, button').forEach((control) => {
-        control.disabled = true;
+        reader.readAsDataURL(file);
     });
-    setStatus(loginStatus, 'Add your Supabase project URL and publishable key to supabase-config.js, then reload this page.', true);
-} else {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-        showLogin(error.message);
-    } else if (data.session) {
-        await openAdmin(data.session);
+
+    function saveProductFromModal() {
+        const idx = parseInt(document.getElementById('editIndex').value, 10);
+        const name = document.getElementById('pName').value.trim();
+        const desc = document.getElementById('pDesc').value.trim();
+        const price = document.getElementById('pPrice').value.trim();
+        const link = document.getElementById('pLink').value.trim() || '#';
+        let img = pendingImageData || '';
+
+        if (!name) { alert('Please enter a product name.'); return; }
+        if (!desc) { alert('Please enter a description.'); return; }
+        if (!price) { alert('Please enter a price.'); return; }
+
+        const product = { name, desc, price, link, img };
+
+        if (idx >= 0 && products[idx]) {
+            products[idx] = product;
+        } else {
+            products.push(product);
+        }
+        saveProducts();
+        renderProducts();
+        closeProductModal();
     }
-}
+
+    // ---------- Export ----------
+    function exportProductsJson() {
+        const dataStr = JSON.stringify(products, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'products.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert(
+            'products.json downloaded.\n\n' +
+            'To make changes permanent on GitHub:\n' +
+            '1. Open the file and copy the JSON array.\n' +
+            '2. Replace the DEFAULT_PRODUCTS array in this HTML file with the copied JSON.\n' +
+            '3. Commit and push the updated file.'
+        );
+    }
+
+    // ---------- Wire up events ----------
+    function init() {
+        loadProducts();
+        renderProducts();
+        restoreAdminMode();
+
+        // Login
+        adminNavLink.addEventListener('click', (e) => { e.preventDefault(); openLogin(); });
+        footerAdminLink.addEventListener('click', (e) => { e.preventDefault(); openLogin(); });
+        document.getElementById('submitLogin').addEventListener('click', attemptLogin);
+        document.getElementById('cancelLogin').addEventListener('click', closeLogin);
+        document.getElementById('closeLogin').addEventListener('click', closeLogin);
+        document.getElementById('adminPass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
+        // Admin banner buttons
+        document.getElementById('addProductBtn').addEventListener('click', () => openProductModal(-1));
+        document.getElementById('exitAdminBtn').addEventListener('click', () => {
+            setAdminMode(false);
+            alert('Admin mode disabled. Refreshing to show visitor view...');
+            location.reload();
+        });
+        document.getElementById('exportBtn').addEventListener('click', exportProductsJson);
+
+        // Product modal buttons
+        document.getElementById('saveProduct').addEventListener('click', saveProductFromModal);
+        document.getElementById('cancelProduct').addEventListener('click', closeProductModal);
+        document.getElementById('closeProduct').addEventListener('click', closeProductModal);
+
+        // Close modals on overlay click
+        loginModal.addEventListener('click', (e) => { if (e.target === loginModal) closeLogin(); });
+        productModal.addEventListener('click', (e) => { if (e.target === productModal) closeProductModal(); });
+
+        // Escape key closes modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (loginModal.classList.contains('open')) closeLogin();
+                if (productModal.classList.contains('open')) closeProductModal();
+            }
+        });
+
+        // Smooth scroll for anchor links (safety)
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href.length > 1) {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
